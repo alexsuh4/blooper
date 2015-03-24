@@ -1,0 +1,263 @@
+<html>
+<head>
+
+<!--vendors -->
+<script type="text/javascript" src="js/jquery-1.8.2.min.js">
+</script>
+
+<!--engine -->
+<style type="text/css">
+</style>
+
+<script type="text/javascript">
+var spriteSheetData={
+	url : 'img/sprite16X128.png',
+	h:1,
+	w:8,
+	size:16,
+	objects:[
+				{objName: 'earth' , sprites : [{x:1,y:0,spriteName:'earth'}]},
+				{objName: 'grass' , sprites : [{x:2,y:0,spriteName:'grass'}]},
+				{objName: 'sea' , sprites : [{x:3,y:0,spriteName:'sea'}]}	
+							
+						
+	]
+}
+
+var mapData = [
+	{x:1 , y:1 , name:'earth' },
+	{x:2 , y:1 , name:'earth' },
+	{x:3 , y:1 , name:'earth' },
+	{x:4 , y:1 , name:'earth' },
+	{x:5 , y:1 , name:'earth' },
+	{x:6 , y:1 , name:'earth' },
+	{x:7 , y:1 , name:'earth' },
+	
+	{x:1 , y:2 , name:'grass' },
+	{x:2 , y:2 , name:'grass' },
+	{x:3 , y:2 , name:'grass' },
+	{x:4 , y:2 , name:'grass' },
+	{x:5 , y:2 , name:'grass' },
+	{x:6 , y:2 , name:'sea' },
+	{x:7 , y:2 , name:'sea' },
+];
+//data section end
+
+function projectCoordinates(dObj){
+	
+}
+
+function loadMap(map){
+	for (var i  = 0; i < map.length ; i ++ ) { 
+		var tile = map[i];
+		var dObj = objCreatros[tile.name]();
+		dObj.location.normalized.x=tile.x;
+		dObj.location.normalized.y=tile.y;
+		dObj.isAnimate=false;
+		scene.addObj(dObj)
+	}
+}
+var objCreatros={};
+
+//init scene containers
+function init(){
+ appScreen=new Screen('#screen');
+ scene=new Scene(appScreen);
+
+}
+var appScreen;
+var scene;
+var refresh=100;
+	
+function loadSprites(spriteSheet){
+	
+	//load sprites
+	var spriteUrl=spriteSheet.url;
+	var size = spriteSheet.size;
+	var w = spriteSheet.w;
+	var h = spriteSheet.h;
+	
+	for (var x  = 0; x < spriteSheet.objects.length ; x ++ ) { 
+			
+			var object = spriteSheet.objects[x];
+				
+			objCreatros[object.objName]=function (){
+				var dObj=new DisplayObj();
+				dObj.id=object.objName;
+				for( var si = 0 ; si < object.sprites.length ; si++ ){
+						var sprite = object.sprites[si];
+						dObj.addSprite(spriteUrl , size , sprite.x * size, sprite.y * size , sprite.spriteName);
+						dObj.isMarked=true;	
+						dObj.isAnimate=true;
+				}
+				
+				return dObj;
+			}
+	}
+		
+}
+
+function startScene(){
+
+	var timeout;
+	//Start animation loop
+	var loop=function (){
+		scene.render();
+		setTimeout(loop,refresh);
+	};
+	timeout=setTimeout(loop,refresh);
+}
+
+
+function Scene(screen)
+{
+	var dObjs=[];
+	this.addObj=function (dObj){
+		screen.init(dObj);
+		dObjs.push(dObj);
+	}
+	
+	function projectToViewport(location){
+	var w = SPRITE_W;
+	var h = SPRITE_H;
+	location.projectedToViewport.x = location.normalized.x * w;
+	location.projectedToViewport.y = location.normalized.y * h;	
+	}
+	
+	this.render=function(){
+		for(var x = 0 ; x < dObjs.length ; x ++){
+			projectToViewport(dObjs[x].location);
+			screen.update(dObjs[x]);
+		}
+	}
+}
+
+function Screen(selector)
+{
+	var me=this;
+	this.init = function(dObj){
+		dObj.deploy(selector);
+	}
+	this.update=function(dObj){
+		dObj.update();
+	}
+}
+
+var SPRITE_H=16;
+var SPRITE_W=16;
+
+
+
+function DisplayObj()
+{
+	var element=$('<div></div>');
+	var sprites={};
+	var states=[];
+	var currentStateName;
+	var currentStateIdx=0;
+	var lastFrameChangeDate;
+	var me=this;
+	
+	this.location = {};
+	this.location.normalized={};
+	this.location.normalized.x=0;
+	this.location.normalized.y=0;
+	this.location.projectedToViewport={};
+	this.location.projectedToViewport.x=0;
+	this.location.projectedToViewport.y=0;
+	
+	this.isMarked=false;
+	this.animateRateMilli=500;
+	this.isAnimate=false;
+	this.id='';
+	
+	this.element=element;
+	this.addSprite=function(spriteUrl,size,x,y,stateName){
+			var spriteInfo={
+				spriteUrl:spriteUrl,
+				size:size,
+				x:x,
+				y:y,
+				stateName:stateName
+			}
+			sprites[stateName]=spriteInfo;
+			states.push(stateName);
+			currentStateIdx=states.length-1;
+			currentStateName=stateName;
+			
+			element.css('width',SPRITE_W);
+			element.css('height',SPRITE_H);
+			element.css('background-image',"url('"+spriteUrl+"')");
+			element.css('position',"absolute");
+	}
+	this.deploy=function (screen){
+		$(screen).append(element);
+	}
+	this.remove=function(){
+		$(screen).remove(element);
+	}
+	function currentSprite(){
+		return sprites[currentStateName];
+	}
+	
+	function isNeedToChangeFrame(){
+		
+		return !lastFrameChangeDate || 
+			new Date() - lastFrameChangeDate > me.animateRateMilli;
+	}
+	function animate()
+	{
+		
+		//check if need to change frame 
+		if (!isNeedToChangeFrame())
+		{
+			return;
+		}		
+		
+		//change frame 
+		currentStateIdx = (currentStateIdx + 1) % states.length;
+		currentStateName=states[currentStateIdx];
+		lastFrameChangeDate=new Date();
+	}
+	var lastFrameChange;
+	this.update=function(){
+		
+		if (me.isAnimate){
+			animate();
+		}
+		
+		var current = sprites[currentStateName];
+		element.css('background-position',current.x+'px'+' '+current.y+'px');		
+		element.css('left',me.location.projectedToViewport.x+'px');
+		element.css('top',me.location.projectedToViewport.y+'px');
+		element.css('border',me.isMarked?'1px solid #000000':'none');		
+	}
+}
+
+
+
+$(function () {
+	init();
+	loadSprites(spriteSheetData);
+	loadMap(mapData);
+	startScene();
+});
+</script>
+
+
+<style type="text/css">
+.screen
+{
+	width:512px;
+	height:512px;
+	border: 1px solid black
+}
+</style>
+</head>
+<body>
+
+<div class="screen" id="screen">
+</div>
+
+</body>
+</html>
