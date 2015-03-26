@@ -76,7 +76,7 @@ function SpritesManager(spriteSheet){
 	
 	for (x = 0; x < spriteSheet.objects.length ; x ++ ) { 
 		var object = spriteSheet.objects[x];
-		dict[object.name]=object;
+		dict[object.objName]=object;
 	}
 	
 	this.createSprite = function(name){
