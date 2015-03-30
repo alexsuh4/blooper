@@ -18,9 +18,10 @@ var spriteSheetData={
 	objects:[
 				{objName: 'earth' , sprites : [{x:1,y:0,spriteName:'earth'}]},
 				{objName: 'grass' , sprites : [{x:2,y:0,spriteName:'grass'}]},
-				{objName: 'sea' , sprites : [{x:3,y:0,spriteName:'sea'}]}	
-							
-						
+				{objName: 'sea' , sprites : [{x:3,y:0,spriteName:'sea'}]},	
+				{objName: 'person' , sprites : [{x:4,y:0,spriteName:'person'}]},
+				{objName: 'person' , sprites : [{x:4,y:0,spriteName:'person'},{x:5,y:0,spriteName:'person1'}]},
+				{objName: 'red-blob' , sprites : [{x:4,y:0,spriteName:'red-blob'},{x:4,y:0,spriteName:'red-blob1'}]}
 	]
 }
 
@@ -40,6 +41,9 @@ var mapData = [
 	{x:5 , y:2 , name:'grass' },
 	{x:6 , y:2 , name:'sea' },
 	{x:7 , y:2 , name:'sea' },
+	{x:1 , y:3 , name:'red-blob' },
+	{x:2 , y:3 , name:'person' },
+	{x:3 , y:3 , name:'red-blob' },
 ];
 //data section end
 
@@ -64,7 +68,7 @@ function init(){
 }
 var appScreen;
 var scene;
-var refresh=100;
+var refresh=500;
 var spriteMgr;
 function SpritesManager(spriteSheet){
 	var spriteUrl=spriteSheet.url;
@@ -98,45 +102,7 @@ function SpritesManager(spriteSheet){
 	}
 }
 function loadSprites(spriteSheet){
-	
-spriteMgr = new SpritesManager(spriteSheet);
-	/*
-	//load sprites
-	var spriteUrl=spriteSheet.url;
-	var size = spriteSheet.size;
-	var w = spriteSheet.w;
-	var h = spriteSheet.h;
-	
-	var x;
-	for (x = 0; x < spriteSheet.objects.length ; x ++ ) { 
-			
-			var object = spriteSheet.objects[x];
-				
-			var creator={};
-			creator.create=function (){
-				var dObj=new DisplayObj();
-				dObj.id=object.objName;
-				for( var si = 0 ; si < object.sprites.length ; si++ ){
-						var sprite = object.sprites[si];
-						dObj.addSprite(spriteUrl , size , sprite.x * size, sprite.y * size , sprite.spriteName);
-						dObj.sprite=sprite;
-						dObj.isMarked=true;	
-						dObj.isAnimate=true;
-				}
-				
-				return dObj;
-			}
-			objCreatros[object.objName]=creator;
-			
-	}
-	
-	//debug
-	for( var o in objCreatros)
-	{
-		console.log(o+" - "+JSON.stringify(objCreatros[o].create()));
-	}
-	*/
-		
+	spriteMgr = new SpritesManager(spriteSheet);		
 }
 
 function startScene(){
@@ -187,8 +153,6 @@ function Screen(selector)
 
 var SPRITE_H=16;
 var SPRITE_W=16;
-
-
 
 function DisplayObj()
 {
