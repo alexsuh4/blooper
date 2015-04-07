@@ -10,21 +10,18 @@
 </style>
 
 <script type="text/javascript">
-var spriteSheetData={
-	url : 'img/sprite16X128.png',
-	h:1,
-	w:8,
-	size:16,
-	objects:[
-				{objName: 'earth' , sprites : [{x:1,y:0,spriteName:'earth'}]},
-				{objName: 'grass' , sprites : [{x:2,y:0,spriteName:'grass'}]},
-				{objName: 'sea' , sprites : [{x:3,y:0,spriteName:'sea'}]},	
-				{objName: 'person' , sprites : [{x:4,y:0,spriteName:'person'}]},
-				{objName: 'person' , sprites : [{x:4,y:0,spriteName:'person'},{x:5,y:0,spriteName:'person1'}]},
-				{objName: 'red-blob' , sprites : [{x:4,y:0,spriteName:'red-blob'},{x:4,y:0,spriteName:'red-blob1'}]}
-	]
+
+//entities
+function getEntities(){
+	return [
+		
+		{x:10 , y:3 , name:'red-blob' },
+		{x:1 , y:1 , name:'person' },
+		{x:20 , y:10 , name:'red-blob' },
+	];
 }
 
+//map using sprite sheet
 var mapData = [
 	{x:1 , y:1 , name:'earth' },
 	{x:2 , y:1 , name:'earth' },
@@ -41,24 +38,62 @@ var mapData = [
 	{x:5 , y:2 , name:'grass' },
 	{x:6 , y:2 , name:'sea' },
 	{x:7 , y:2 , name:'sea' },
-	{x:1 , y:3 , name:'red-blob' },
-	{x:2 , y:3 , name:'person' },
-	{x:3 , y:3 , name:'red-blob' },
+	
 ];
-//data section end
+
+//Sprite sheet
+var spriteSheetData={
+	url : 'img/sprite16X128.png',
+	h:1,
+	w:8,
+	size:16,
+	objects:[
+				{objName: 'earth' , sprites : [{x:1,y:0,spriteName:'earth'}]},
+				{objName: 'grass' , sprites : [{x:2,y:0,spriteName:'grass'}]},
+				{objName: 'sea' , sprites : [{x:3,y:0,spriteName:'sea'}]},	
+				{objName: 'person' , sprites : [{x:4,y:0,spriteName:'person'}]},
+				{objName: 'person' , sprites : [{x:4,y:0,spriteName:'person'},{x:5,y:0,spriteName:'person1'}]},
+				{objName: 'red-blob' , sprites : [{x:6,y:0,spriteName:'red-blob'},{x:7,y:0,spriteName:'red-blob1'}]}
+	]
+}
+
+function loadEntities(entities){
+	for (var i  = 0; i < entities.length ; i ++ ) { 
+		
+		var entity = entities[i];
+		var dObj = spriteMgr.createSprite(entity.name);
+		dObj.location.normalized.x=entity.x;
+		dObj.location.normalized.y=entity.y;
+		dObj.location.isProject=false;
+		dObj.isAnimate=true;
+		scene.addObj(dObj)
+	}
+	
+}
+
+
+var logConfig_addTimestamp=true;
+function log(msg){
+
+	var msgLocal = msg;
+	if (logConfig_addTimestamp){
+		msgLocal = "["+new Date()+"]  "+msgLocal;
+	}
+	console.log(msgLocal);	
+}
 
 function loadMap(map){
 	for (var i  = 0; i < map.length ; i ++ ) { 
 		var tile = map[i];
-		console.log(tile.name);
+		
 		var dObj = spriteMgr.createSprite(tile.name);
 		dObj.location.normalized.x=tile.x;
 		dObj.location.normalized.y=tile.y;
+		dObj.location.isProject=true;
 		dObj.isAnimate=false;
-		scene.addObj(dObj)
+		scene.addObj(dObj);
 	}
 }
-var objCreatros={};
 
 //init scene containers
 function init(){
@@ -68,8 +103,9 @@ function init(){
 }
 var appScreen;
 var scene;
-var refresh=500;
+var refresh=1000;
 var spriteMgr;
+
 function SpritesManager(spriteSheet){
 	var spriteUrl=spriteSheet.url;
 	var size = spriteSheet.size;
@@ -101,6 +137,7 @@ function SpritesManager(spriteSheet){
 		return dObj;
 	}
 }
+
 function loadSprites(spriteSheet){
 	spriteMgr = new SpritesManager(spriteSheet);		
 }
@@ -113,9 +150,9 @@ function startScene(){
 		scene.render();
 		setTimeout(loop,refresh);
 	};
+	loop();
 	timeout=setTimeout(loop,refresh);
 }
-
 
 function Scene(screen)
 {
@@ -126,10 +163,18 @@ function Scene(screen)
 	}
 	
 	function projectToViewport(location){
-	var w = SPRITE_W;
-	var h = SPRITE_H;
-	location.projectedToViewport.x = location.normalized.x * w;
-	location.projectedToViewport.y = location.normalized.y * h;	
+		var w = SPRITE_W;
+		var h = SPRITE_H;
+		
+		if (location.isProject){
+			location.projectedToViewport.x = location.normalized.x * w;
+			location.projectedToViewport.y = location.normalized.y * h;		
+		}
+		else {
+			location.projectedToViewport.x = location.normalized.x;
+			location.projectedToViewport.y = location.normalized.y;
+		}
+		
 	}
 	
 	this.render=function(){
@@ -171,6 +216,7 @@ function DisplayObj()
 	this.location.projectedToViewport={};
 	this.location.projectedToViewport.x=0;
 	this.location.projectedToViewport.y=0;
+	this.location.isProject = false; 
 	
 	this.isMarked=false;
 	this.animateRateMilli=500;
@@ -243,9 +289,20 @@ function DisplayObj()
 
 
 $(function () {
+	
+	log("initializing");
 	init();
+	
+	log("loading sprites");
 	loadSprites(spriteSheetData);
+	
+	log("loading map");
 	loadMap(mapData);
+	
+	log("loading entities");
+	loadEntities(getEntities());
+	
+	log("starting scene");
 	startScene();
 });
 </script>
