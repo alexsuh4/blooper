@@ -2,396 +2,111 @@
 <head>
 
 <!--vendors -->
-<script type="text/javascript" src="js/jquery-1.8.2.min.js">
+<script type="text/javascript" src="js/vnd/jquery-1.8.2.min.js">
 </script>
 
 <!--engine -->
-<style type="text/css">
-</style>
+
+<script type="text/javascript" src="js/engine/common.js">
+</script>
+
+<script type="text/javascript" src="js/engine/sprite.js">
+</script>
+
+<script type="text/javascript" src="js/engine/ai.js">
+</script>
 
 <script type="text/javascript">
 
-//terrain
-//entities
-//game flow --> 
-//		subscribe state change 
-//			react according to script
-//		states
-//			publish game state change
-// implement visior
-//entities
-function getEntities(){
-	return [
-		
-		{x:10 , y:3 , name:'red-blob' },
-		{x:1 , y:1 , name:'person' },
-		{x:20 , y:10 , name:'red-blob' },
-	];
-}
 
-function GameContext(){
-	var broadcasts={};
-	this.broadcast=function(item){
-		if (broadcasts[name]){
-			var subscribers = broadcasts[name];
-			for( var x = 0 ; x < subscribers.length ; x++ ){
-				subscribers[x](item);
-			}
-		}
-		//item.name;
-		//item.args;
-	}
-	this.subscribe=function(filter,subscriber){
-		if (!broadcasts[filter]){
-			broadcasts[filter]=[];
-		}
-		broadcasts[filter].push(subscriber);
-	}
-}
-Math.sign=function(a) {
-	if( !a){
-		return 0;
-	}	
-	return a > 0 ? 1 : -1;
-}
-var Utils={};
-Utils.distPt = function (pt1,pt2){
-	var dx = pt1.x - pt2.x;
-	var dy = pt1.y - pt2.y;
-	return Math.sqrt(dx * dx + dy * dy);
-}
-
-//2d track
-function TrackerAI(me,context,trackWho){
-	this.step=function (){
-		//close enough ? 
-		var threshold = 1;
-		var dist = Utils.distPt(me.location , trackWho.location);
-		if (dist <= threshold)
-		{
-			context.broadcast({name:'collision' , data :{origin:me,collideWith:trackWho}});
-			return;
-		}
-		
-		//try track 
-		vector = { x : 0, y : 0 };
-		vector.x=  Math.sign(me.location.x - trackWho.location.x);
-		vector.y=  Math.sign(me.location.y - trackWho.location.y);
-		
-		me.movmentVector = vector;
-		 
-		//collision
-		//path finding
-		//if close enough .. broadcast found - todo something when tracked 
-		//happens each resolve AI game loop
-	}
-}
-var aiEngine
-function setupAI(){
-	aiEngine==new DynamicEntitiesEngine();
+function waitUntilTrue(delegate,execute){
+	console.log("waitUntilTrue enter");
 	
-	var entity={};
-	aiEngine.add
+	console.log("delegate = "+delegate);
+	console.log("execute = "+execute);
 	
-	return aiEngine;
-}
-
-function DynamicEntitiesEngine(){
-	var entities=[];
-	this.add=function(entity){
-	}
-	this.remove=function(entity){
-	}
-	this.step=function(){
-		for (var i  = 0; i < entities.length ; i ++ ) { 
-			entities[i].step();
-		}
-	}
-}
-
-//map using sprite sheet
-var mapData = [
-	{x:1 , y:1 , name:'earth' },
-	{x:2 , y:1 , name:'earth' },
-	{x:3 , y:1 , name:'earth' },
-	{x:4 , y:1 , name:'earth' },
-	{x:5 , y:1 , name:'earth' },
-	{x:6 , y:1 , name:'earth' },
-	{x:7 , y:1 , name:'earth' },
 	
-	{x:1 , y:2 , name:'grass' },
-	{x:2 , y:2 , name:'grass' },
-	{x:3 , y:2 , name:'grass' },
-	{x:4 , y:2 , name:'grass' },
-	{x:5 , y:2 , name:'grass' },
-	{x:6 , y:2 , name:'sea' },
-	{x:7 , y:2 , name:'sea' },
-	
-];
-
-//Sprite sheet
-var spriteSheetData={
-	url : 'img/sprite16X128.png',
-	h:1,
-	w:8,
-	size:16,
-	objects:[
-				{objName: 'earth' , sprites : [{x:1,y:0,spriteName:'earth'}]},
-				{objName: 'grass' , sprites : [{x:2,y:0,spriteName:'grass'}]},
-				{objName: 'sea' , sprites : [{x:3,y:0,spriteName:'sea'}]},	
-				{objName: 'person' , sprites : [{x:4,y:0,spriteName:'person'}]},
-				{objName: 'person' , sprites : [{x:4,y:0,spriteName:'person'},{x:5,y:0,spriteName:'person1'}]},
-				{objName: 'red-blob' , sprites : [{x:6,y:0,spriteName:'red-blob'},{x:7,y:0,spriteName:'red-blob1'}]}
-	]
-}
-
-function loadEntities(entities){
-	for (var i  = 0; i < entities.length ; i ++ ) { 
-		
-		var entity = entities[i];
-		var dObj = spriteMgr.createSprite(entity.name);
-		dObj.location.normalized.x=entity.x;
-		dObj.location.normalized.y=entity.y;
-		dObj.location.isProject=false;
-		dObj.isAnimate=true;
-		scene.addObj(dObj)
+	if(delegate()){
+		console.log("waitUntilTrue/ before execute");
+		execute();
 	}
-	
-}
-
-
-var logConfig_addTimestamp=true;
-function log(msg){
-
-	var msgLocal = msg;
-	if (logConfig_addTimestamp){
-		msgLocal = "["+new Date()+"]  "+msgLocal;
-	}
-	console.log(msgLocal);	
-}
-
-function loadMap(map){
-	for (var i  = 0; i < map.length ; i ++ ) { 
-		var tile = map[i];
-		
-		var dObj = spriteMgr.createSprite(tile.name);
-		dObj.location.normalized.x=tile.x;
-		dObj.location.normalized.y=tile.y;
-		dObj.location.isProject=true;
-		dObj.isAnimate=false;
-		scene.addObj(dObj);
-	}
-}
-
-//init scene containers
-function init(){
- appScreen=new Screen('#screen');
- scene=new Scene(appScreen);
-
-}
-var appScreen;
-var scene;
-var refresh=1000;
-var spriteMgr;
-
-function SpritesManager(spriteSheet){
-	var spriteUrl=spriteSheet.url;
-	var size = spriteSheet.size;
-	var w = spriteSheet.w;
-	var h = spriteSheet.h;
-	
-	var dict={};
-	
-	for (x = 0; x < spriteSheet.objects.length ; x ++ ) { 
-		var object = spriteSheet.objects[x];
-		dict[object.objName]=object;
-	}
-	
-	this.createSprite = function(name){
-		var spriteObj = dict[name];
-		return createFromObject(spriteObj);
-	}
-	function createFromObject(spriteObj){
-	
-		var dObj=new DisplayObj();
-				dObj.id=spriteObj.objName;
-				for( var si = 0 ; si < spriteObj.sprites.length ; si++ ){
-						var sprite = spriteObj.sprites[si];
-						dObj.addSprite(spriteUrl , size , sprite.x * size, sprite.y * size , sprite.spriteName);
-						dObj.sprite=sprite;
-						dObj.isMarked=true;	
-						dObj.isAnimate=true;
-				}
-		return dObj;
-	}
-}
-
-function loadSprites(spriteSheet){
-	spriteMgr = new SpritesManager(spriteSheet);		
-}
-
-function startScene(){
-
-	var timeout;
-	//Start animation loop
-	var loop=function (){
-		scene.render();
-		setTimeout(loop,refresh);
-	};
-	loop();
-	timeout=setTimeout(loop,refresh);
-}
-
-function Scene(screen)
-{
-	var dObjs=[];
-	this.addObj=function (dObj){
-		screen.init(dObj);
-		dObjs.push(dObj);
-	}
-	
-	function projectToViewport(location){
-		var w = SPRITE_W;
-		var h = SPRITE_H;
-		
-		if (location.isProject){
-			location.projectedToViewport.x = location.normalized.x * w;
-			location.projectedToViewport.y = location.normalized.y * h;		
-		}
-		else {
-			location.projectedToViewport.x = location.normalized.x;
-			location.projectedToViewport.y = location.normalized.y;
-		}
-		
-	}
-	
-	this.render=function(){
-		for(var x = 0 ; x < dObjs.length ; x ++){
-			projectToViewport(dObjs[x].location);
-			screen.update(dObjs[x]);
-		}
-	}
-}
-
-function Screen(selector)
-{
-	var me=this;
-	this.init = function(dObj){
-		dObj.deploy(selector);
-	}
-	this.update=function(dObj){
-		dObj.update();
-	}
-}
-
-var SPRITE_H=16;
-var SPRITE_W=16;
-
-function DisplayObj()
-{
-	var element=$('<div></div>');
-	var sprites={};
-	var states=[];
-	var currentStateName;
-	var currentStateIdx=0;
-	var lastFrameChangeDate;
-	var me=this;
-	
-	this.location = {};
-	this.location.normalized={};
-	this.location.normalized.x=0;
-	this.location.normalized.y=0;
-	this.location.projectedToViewport={};
-	this.location.projectedToViewport.x=0;
-	this.location.projectedToViewport.y=0;
-	this.location.isProject = false; 
-	
-	this.isMarked=false;
-	this.animateRateMilli=500;
-	this.isAnimate=false;
-	this.id='';
-	
-	this.element=element;
-	this.addSprite=function(spriteUrl,size,x,y,stateName){
-			var spriteInfo={
-				spriteUrl:spriteUrl,
-				size:size,
-				x:x,
-				y:y,
-				stateName:stateName
-			}
-			sprites[stateName]=spriteInfo;
-			states.push(stateName);
-			currentStateIdx=states.length-1;
-			currentStateName=stateName;
-			
-			element.css('width',SPRITE_W);
-			element.css('height',SPRITE_H);
-			element.css('background-image',"url('"+spriteUrl+"')");
-			element.css('position',"absolute");
-	}
-	this.deploy=function (screen){
-		$(screen).append(element);
-	}
-	this.remove=function(){
-		$(screen).remove(element);
-	}
-	function currentSprite(){
-		return sprites[currentStateName];
-	}
-	
-	function isNeedToChangeFrame(){
-		
-		return !lastFrameChangeDate || 
-			new Date() - lastFrameChangeDate > me.animateRateMilli;
-	}
-	function animate()
+	else 
 	{
-		
-		//check if need to change frame 
-		if (!isNeedToChangeFrame())
-		{
-			return;
-		}		
-		
-		//change frame 
-		currentStateIdx = (currentStateIdx + 1) % states.length;
-		currentStateName=states[currentStateIdx];
-		lastFrameChangeDate=new Date();
-	}
-	var lastFrameChange;
-	this.update=function(){
-		
-		if (me.isAnimate){
-			animate();
-		}
-		
-		var current = sprites[currentStateName];
-		element.css('background-position',current.x+'px'+' '+current.y+'px');		
-		element.css('left',me.location.projectedToViewport.x+'px');
-		element.css('top',me.location.projectedToViewport.y+'px');
-		element.css('border',me.isMarked?'1px solid #000000':'none');		
+		console.log("waitUntilTrue/ scheduling timeout for 500ms");
+		setTimeout(function (){
+			waitUntilTrue(delegate,execute);
+		},500);
 	}
 }
+function loadComponents(list,i){
+	
+	$(".screen").text("loading "+i / list.length );
+	
+	console.log("loadComponents/ enter");
+	console.log("loadComponents/ enter i = " + i);
+	console.log("loadComponents/ enter list = " + list);
+		
+	if(typeof i == 'undefined'){
+		console.log("initializing index  i");
+		i = 0;
+	}
+	
+	console.log("i = " + i);
+		
+	var componentId = list[i].name;
+	var initCode = list[i].action;
+	
+	console.log("componentId = " + componentId);
+	console.log("initCode = " + initCode );
+	
+	var initComponent = function () { eval (initCode); };
+	
+	var checkComponentloaded = function () { return eval ("typeof " + componentId + " != 'undefined'"); }
+	var loadComponentAndoveNext = function (){
+			console.log("loadComponentAndoveNext enter");
+			console.log("i = "+ i );
+	
+			initComponent();
+			if ( i  < list.length) {
+				loadComponents(list , i + 1);
+			}
+		}		
+	
+	console.log("before waitUntilTrue");
+	
+	waitUntilTrue( checkComponentloaded, loadComponentAndoveNext);
+	//load components sequencialy (?) 
+}
 
-
-
+//bootstrapping 
 $(function () {
 	
-	log("initializing");
-	init();
+			
 	
-	log("loading sprites");
-	loadSprites(spriteSheetData);
+	loadComponents( [{ name : 'init' ,action : 'init()' }] ); 
 	
-	log("loading map");
-	loadMap(mapData);
+	/*
+	waitUntilLoaded(function () { return typeof init != 'undefined'} , 
+		function(){
+				log("initializing");
+				init();
+							
+				log("loading sprites");
+				loadSprites(spriteSheetData);
+				
+				log("loading map");
+				loadMap(mapData);
+				
+				log("loading entities");
+				loadEntities(getEntities());
+				
+				log("starting scene");
+				startScene();
+		}
+	);
+	*/
 	
-	log("loading entities");
-	loadEntities(getEntities());
 	
-	log("starting scene");
-	startScene();
 });
 </script>
 
