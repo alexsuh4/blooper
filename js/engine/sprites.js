@@ -65,7 +65,6 @@ function loadMap(map){
 function init(){
  appScreen=new Screen('#screen');
  scene=new Scene(appScreen);
-
 }
 var appScreen;
 var scene;

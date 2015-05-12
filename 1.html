@@ -10,7 +10,7 @@
 <script type="text/javascript" src="js/engine/common.js">
 </script>
 
-<script type="text/javascript" src="js/engine/sprite.js">
+<script type="text/javascript" src="js/engine/sprites.js">
 </script>
 
 <script type="text/javascript" src="js/engine/ai.js">
@@ -21,10 +21,6 @@
 
 function waitUntilTrue(delegate,execute){
 	console.log("waitUntilTrue enter");
-	
-	console.log("delegate = "+delegate);
-	console.log("execute = "+execute);
-	
 	
 	if(delegate()){
 		console.log("waitUntilTrue/ before execute");
@@ -38,9 +34,65 @@ function waitUntilTrue(delegate,execute){
 		},500);
 	}
 }
-function loadComponents(list,i){
+
+function loader(){
+	var _this=this;
+	var _loaderElement;
 	
-	$(".screen").text("loading "+i / list.length );
+	if (!window.currentLoader){
+		window.currentLoader=createLoader();
+	}
+	
+	function createLoader(){
+		var loaderElement = $('<div class="loader"></div>');
+		loaderElement
+		.css('position','absolute')
+		.css('left','100px')
+		.css('top','100px')
+		.css('background-color','#0000aa')
+		.css('color','#aa0000')
+		.css('width','200px')
+		.css('height','200px')
+		.css('display','none');
+		
+		_loaderElement=loaderElement;
+		$("body").append(loaderElement);
+		return _this;
+	}
+	
+	this.show=function (text){
+		_loaderElement.css('display','block');
+		if(text){
+			_this.text(text);
+		}
+		return _this;
+	}
+	
+	this.hide=function (){
+		_loaderElement.css('display','none');
+		return _this;
+	}
+	
+	this.text=function (text){
+		_loaderElement.html('<h2>'+text+'</h2>');
+		return _this;
+	}
+	
+	this.content=function (htmlContent){
+		_loaderElement.html(htmlContent);
+		return _this;
+	}
+	
+	this.progress=function(label,index,total){
+		var percent = (i+1) / list.length;
+		var percentAs100 = percent * 100;
+		var percentText = percentAs100 + "%";
+		_this.show( label + " " +percentText);
+		return _this;
+	}
+}
+
+function loadComponents(list,i){
 	
 	console.log("loadComponents/ enter");
 	console.log("loadComponents/ enter i = " + i);
@@ -50,9 +102,18 @@ function loadComponents(list,i){
 		console.log("initializing index  i");
 		i = 0;
 	}
+	if(i >= list.length){
+		currentLoader.hide();
+		return;
+	}
+	
+	currentLoader.show('loading...' , i , list.length);
+	//$(".screen").text("loading "+ (((i+1) / list.length ) * 100) +"%" );
 	
 	console.log("i = " + i);
-		
+	if(!list[i]){
+		return;
+	}
 	var componentId = list[i].name;
 	var initCode = list[i].action;
 	
@@ -81,31 +142,15 @@ function loadComponents(list,i){
 //bootstrapping 
 $(function () {
 	
-			
+	loader();
+	currentLoader.show('loading...');
 	
-	loadComponents( [{ name : 'init' ,action : 'init()' }] ); 
-	
-	/*
-	waitUntilLoaded(function () { return typeof init != 'undefined'} , 
-		function(){
-				log("initializing");
-				init();
-							
-				log("loading sprites");
-				loadSprites(spriteSheetData);
-				
-				log("loading map");
-				loadMap(mapData);
-				
-				log("loading entities");
-				loadEntities(getEntities());
-				
-				log("starting scene");
-				startScene();
-		}
-	);
-	*/
-	
+	loadComponents( [
+	{ name : 'init' ,action : 'init()' }
+	,{ name : 'loadSprites' ,action : 'loadSprites(spriteSheetData)' }
+	,{ name : 'loadMap' ,action : 'loadMap(mapData)' }
+	,{ name : 'startScene' ,action : 'startScene()' }
+	] ); 
 	
 });
 </script>
